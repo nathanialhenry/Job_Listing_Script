@@ -1,7 +1,7 @@
 from selenium import webdriver
 import os, argparse, smtplib
 
-# create command line argumets for sensitive information
+# create command line argumets for sensitive/desired information
 parser = argparse.ArgumentParser()
 parser.add_argument("--path", type=str, default="/usr/bin/chromedriver", help="Insert Filepath for selenium web driver (chromedriver, gecko, etc)" )
 parser.add_argument("--user", type=str, help="Username to send emails with" )
@@ -46,7 +46,6 @@ def expand_shadow_element(element):
 driver = webdriver.Chrome(args.path)
 driver.get("https://www.ea.com/careers/careers-overview/vancouver#roles")
 
-
 # Fetch the #shadow-root parent and use that to expand
 root_element = driver.find_element_by_tag_name("eacom-jobs-list")
 shadow_element = expand_shadow_element(root_element)
@@ -60,8 +59,6 @@ jobListing = job_table.find_elements_by_class_name('eacom-jobs-list__row')
 # declare jobs of interest and variables to store results
 JOBS_OF_INTEREST = args.job
 
-
-
 results_dict = []
 # Loop through listings from the web element and create dicts/lists
 for listing in jobListing:
@@ -71,7 +68,6 @@ for listing in jobListing:
             (listing.get_attribute("href")) : (listing.text.split("\n")[0])
             }
         results_dict.append(result_content)
-
 
 # creates jobFile.txt if it doesn't already exist
 file_check = os.path.isfile('jobFile.txt')
@@ -86,6 +82,7 @@ with open('newJobFile.txt','w') as newJobFile:
     for i in results_dict:
         newJobFile.write(str(i))
 newJobFile.close()
+
 # open previously saved results from jobFile.txt and append them to older_results variable for comparison
 older_results = []
 with open('jobFile.txt', 'r') as jobFile:
@@ -100,15 +97,14 @@ with open('newJobFile.txt', 'r') as newJobFile:
         results_comparable.append(i)
 newJobFile.close()
 
+# compare new listing results vs older listing results and append the difference to variables
 older_results_to_write = []
 results_to_email= []
-# compare new listing results vs older listing results and append the difference to variables
 for i in results_comparable:
     if i not in older_results:
         older_results_to_write.append(i)
         results_to_email.append(i)
         results_to_email.append("\n")
-
 print("these results were found to be recent additions to the ea site:{0}".format(results_to_email))
 
 # update the jobFile.txt document with most up to date job listings
@@ -126,5 +122,6 @@ if results_to_email:
     send_email(text)
 else:
     print("No new listings to report")
+
 # close webdriver
 driver.quit()
