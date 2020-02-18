@@ -5,4 +5,5 @@ Need to install Selenium and Chromedriver (in the Requirements.txt) to run. Will
 	(--path "chromedriver path", --user "username for sending emails", --password "password for email account", --to "recipient email", --job "type of job being searched (can be multiple, see help option when running script)
 
 It is best used with cron job or task scheduler and with a batch file for command line arguments.
+-Note: This script will create multiple .txt files
 

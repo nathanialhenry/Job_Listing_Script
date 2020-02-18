@@ -1,6 +1,7 @@
 from selenium import webdriver
 import os, argparse, smtplib
 
+# TODO improve email formatting 
 # create command line argumets for sensitive/desired information
 parser = argparse.ArgumentParser()
 parser.add_argument("--path", type=str, default="/usr/bin/chromedriver", help="Insert Filepath for selenium web driver (chromedriver, gecko, etc)" )
