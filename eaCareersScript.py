@@ -63,15 +63,12 @@ jobListing = job_table.find_elements_by_class_name('eacom-jobs-list__row')
 JOBS_OF_INTEREST = args.job
 
 results_dict = {}
-results_dict['Listings'] = []
 # Loop through listings from the web element and create dicts/lists
 for listing in jobListing:
   for job in JOBS_OF_INTEREST:
     if (job in listing.text):
-        results_dict['Listings'].append( {
-        'url' : (listing.get_attribute("href")),
-        'job' : (listing.text.split("\n")[0])
-        })
+        results_dict[(listing.get_attribute("href"))] = (listing.text.split("\n")[0])
+
 
 # creates jobFile.txt if it doesn't already exist
 file_check = os.path.isfile('jobFile.txt')
@@ -82,26 +79,18 @@ if file_check == False:
 
 # open previously saved results from JSON and append them to older_results variable for comparison
 older_results_dict = {}
-older_results_dict['Listings'] = []
 try:
     with open('jobFile.txt', 'r') as json_file:
         stored_listing = json.load(json_file)
         older_results_dict = dict(stored_listing)
-    file.close()
+    json_file.close()
 except Exception as e:
     print("There has been an Exception at %s" % (e))
 
+# compare new listing results vs older listing results
+results_to_email = set(results_dict) - set(older_results_dict)
 
-# compare new listing results vs older listing results and append the difference to variables
-
-new = set(results_dict['Listings'])
-old = set(older_results_dict['Listings'])
-
-results_difference = new - old
-
-results_to_email = dict(results_difference)
-
-print("these results were found to be recent additions to the ea site:{0}  =  {1}".format(results_to_email.get('job'), results_to_email.get('url')))
+print("these results were found to be recent additions to the ea site:{0}  =  {1}".format(results_to_email)
 
 # update the jobFile.txt document with most up to date job listings
 with open('jobFile.txt', 'w') as file:
