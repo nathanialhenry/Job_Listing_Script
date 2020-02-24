@@ -67,40 +67,44 @@ results_dict = {}
 for listing in jobListing:
   for job in JOBS_OF_INTEREST:
     if (job in listing.text):
-        results_dict[(listing.get_attribute("href"))] = (listing.text.split("\n")[0])
+        results_dict.update({
+        'url' : (listing.get_attribute("href")),
+        'job' : (listing.text.split("\n")[0])
+        })
 
 
 # creates jobFile.txt if it doesn't already exist
-file_check = os.path.isfile('jobFile.txt')
+emptyJson = 'Empty'
+file_check = os.path.isfile('jobFile.json')
 if file_check == False:
-    with open('jobFile.txt', 'w') as f:
-        f.write('')
+    with open('jobFile.json', 'w') as f:
+        f.dump(emptyJson)
     f.close()
 
 # open previously saved results from JSON and append them to older_results variable for comparison
 older_results_dict = {}
 try:
-    with open('jobFile.txt', 'r') as json_file:
-        stored_listing = json.load(json_file)
-        older_results_dict = dict(stored_listing)
+    with open('jobFile.json', 'r') as json_file:
+        older_results_dict = json.load(json_file)
+        older_results_list = older_results_dict
     json_file.close()
 except Exception as e:
     print("There has been an Exception at %s" % (e))
 
-# compare new listing results vs older listing results
-results_to_email = set(results_dict) - set(older_results_dict)
+# creates a variable containing the difference of the new listings - the old listings
+results_to_email = {key : results_dict[key] for key in set(results_dict) - set(older_results_dict)}
 
-print("these results were found to be recent additions to the ea site:{0}  =  {1}".format(results_to_email)
+print("these results were found to be recent additions to the ea site:{0}".format(results_to_email))
 
 # update the jobFile.txt document with most up to date job listings
-with open('jobFile.txt', 'w') as file:
-    json.dump(results_dict, file)
+with open('jobFile.json', 'w') as file:
+    json.dump(results_dict, file, indent = 2)
 file.close()
 
 # send email with new listings if there was any changes between older scrapes and newer scrapes
 if results_to_email:
     print("sending email...")
-    text = ("Hello, \n These are the new job listings found on the EA Vancouver Careers website: \n %s" %(results_to_email.get('job'), results_to_email.get('url')))
+    text = ("Hello, \n These are the new job listings found on the EA Vancouver Careers website: \n %s" %(results_to_email))
     send_email(text)
 else:
     print("No new listings to report")
