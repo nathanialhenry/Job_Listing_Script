@@ -20,7 +20,7 @@ def send_email(text):
     sent_from = gmail_user
     to = args.to
     subject = 'New Job Listings from EA'
-    body = text
+    body = encoded_text
     email_text = """\
     From: %s
     To: %s
@@ -93,17 +93,15 @@ except Exception as e:
 # creates a variable containing the difference of the new listings - the old listings
 difference_of_dicts = {key : results_dict[key] for key in set(results_dict) - set(older_results_dict)}
 
-# TODO format email text (i.e. Job : Url /n))  
-unsorted_results = []
+# format email text (i.e. Job : Url /n))  
+sorted_results = []
 
 
 for key in sorted(difference_of_dicts.keys()):
-    unsorted_results.append(key)
-    unsorted_results.append(difference_of_dicts[key])
+    sorted_results.append(difference_of_dicts[key])
 
-print (unsorted_results)
 
-print("these results were found to be recent additions to the ea site:{0}".format(unsorted_results))
+print("these results were found to be recent additions to the ea site:{0}".format(sorted_results))
 
 # update the jobFile.txt document with most up to date job listings
 with open('jobFile.json', 'w') as file:
@@ -111,12 +109,25 @@ with open('jobFile.json', 'w') as file:
 file.close()
 
 # send email with new listings if there was any changes between older scrapes and newer scrapes
-if unsorted_results:
+if sorted_results:
+
+    formated_email = ""
+    counter = 0
+    len_sorted_results = len(sorted_results)
+    url_half = (int(len_sorted_results/2))
+
+    while counter < url_half:
+        formated_email += sorted_results[counter] + " : " + sorted_results[(counter+ url_half)] + " \n "
+        counter +=1
+
+    #  .encode('ascii', 'ignore')
+
     print("sending email...")
-    text = ("Hello, \n These are the new job listings found on the EA Vancouver Careers website: \n %s" %(unsorted_results))
-    send_email(text)
+    text = ("Hello, \n \n These are the new job listings found on the EA Vancouver Careers website: \n \n %s" %(formated_email))
+    encoded_text = text
+    send_email(encoded_text)
 else:
     print("No new listings to report")
-#
+
 # close webdriver
 driver.quit()
