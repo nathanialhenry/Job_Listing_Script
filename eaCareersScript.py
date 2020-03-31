@@ -1,9 +1,6 @@
-# TODO find object best for comparison of the two sets of Listings and format the email better
-
 from selenium import webdriver
-import os, argparse, smtplib, json, re
+import os, argparse, smtplib, json
 
-# TODO improve email formatting
 # create command line argumets for sensitive/desired information
 parser = argparse.ArgumentParser()
 parser.add_argument("--path", type=str, default="/usr/bin/chromedriver", help="Insert Filepath for selenium web driver (chromedriver, gecko, etc)" )
@@ -20,7 +17,7 @@ def send_email(text):
     sent_from = gmail_user
     to = args.to
     subject = 'New Job Listings from EA'
-    body = encoded_text
+    body = text
     email_text = """\
     From: %s
     To: %s
@@ -64,7 +61,7 @@ JOBS_OF_INTEREST = args.job
 
 results_dict = {}
 key_counter = 0
-# Loop through listings from the web element and create dicts/lists
+# Loop through listings from the web element and create dict
 for listing in jobListing:
   for job in JOBS_OF_INTEREST:
     if (job in listing.text):
@@ -72,7 +69,7 @@ for listing in jobListing:
         results_dict ['job{0}'.format([key_counter])] = (listing.text.split("\n")[0])
         key_counter += 1
 
-# creates jobFile.txt if it doesn't already exist
+# creates jobFile.json if it doesn't already exist
 emptyJson = 'Empty'
 file_check = os.path.isfile('jobFile.json')
 if file_check == False:
@@ -93,9 +90,8 @@ except Exception as e:
 # creates a variable containing the difference of the new listings - the old listings
 difference_of_dicts = {key : results_dict[key] for key in set(results_dict) - set(older_results_dict)}
 
-# format email text (i.e. Job : Url /n))  
+# sort the set difference and create a list
 sorted_results = []
-
 
 for key in sorted(difference_of_dicts.keys()):
     sorted_results.append(difference_of_dicts[key])
@@ -108,8 +104,9 @@ with open('jobFile.json', 'w') as file:
     json.dump(results_dict, file, indent = 2)
 file.close()
 
-# send email with new listings if there was any changes between older scrapes and newer scrapes
-if sorted_results:
+# format and send email with new listings if there was any changes between older scrapes and newer scrapes
+if sorted_results: 
+    print("sending email...")
 
     formated_email = ""
     counter = 0
@@ -120,12 +117,8 @@ if sorted_results:
         formated_email += sorted_results[counter] + " : " + sorted_results[(counter+ url_half)] + " \n "
         counter +=1
 
-    #  .encode('ascii', 'ignore')
-
-    print("sending email...")
     text = ("Hello, \n \n These are the new job listings found on the EA Vancouver Careers website: \n \n %s" %(formated_email))
-    encoded_text = text
-    send_email(encoded_text)
+    send_email(text)
 else:
     print("No new listings to report")
 
