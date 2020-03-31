@@ -111,7 +111,7 @@ with open('jobFile.json', 'w') as file:
 file.close()
 
 # send email with new listings if there was any changes between older scrapes and newer scrapes
-if results_to_email:
+if unsorted_results:
     print("sending email...")
     text = ("Hello, \n These are the new job listings found on the EA Vancouver Careers website: \n %s" %(unsorted_results))
     send_email(text)
