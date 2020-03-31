@@ -1,7 +1,7 @@
 # TODO find object best for comparison of the two sets of Listings and format the email better
 
 from selenium import webdriver
-import os, argparse, smtplib, json
+import os, argparse, smtplib, json, re
 
 # TODO improve email formatting
 # create command line argumets for sensitive/desired information
@@ -63,15 +63,14 @@ jobListing = job_table.find_elements_by_class_name('eacom-jobs-list__row')
 JOBS_OF_INTEREST = args.job
 
 results_dict = {}
+key_counter = 0
 # Loop through listings from the web element and create dicts/lists
 for listing in jobListing:
   for job in JOBS_OF_INTEREST:
     if (job in listing.text):
-        results_dict.update({
-        'url' : (listing.get_attribute("href")),
-        'job' : (listing.text.split("\n")[0])
-        })
-
+        results_dict ['url {0}'.format([key_counter])] = (listing.get_attribute("href"))
+        results_dict ['job{0}'.format([key_counter])] = (listing.text.split("\n")[0])
+        key_counter += 1
 
 # creates jobFile.txt if it doesn't already exist
 emptyJson = 'Empty'
@@ -92,9 +91,19 @@ except Exception as e:
     print("There has been an Exception at %s" % (e))
 
 # creates a variable containing the difference of the new listings - the old listings
-results_to_email = {key : results_dict[key] for key in set(results_dict) - set(older_results_dict)}
+difference_of_dicts = {key : results_dict[key] for key in set(results_dict) - set(older_results_dict)}
 
-print("these results were found to be recent additions to the ea site:{0}".format(results_to_email))
+# TODO format email text (i.e. Job : Url /n))  
+unsorted_results = []
+
+
+for key in sorted(difference_of_dicts.keys()):
+    unsorted_results.append(key)
+    unsorted_results.append(difference_of_dicts[key])
+
+print (unsorted_results)
+
+print("these results were found to be recent additions to the ea site:{0}".format(unsorted_results))
 
 # update the jobFile.txt document with most up to date job listings
 with open('jobFile.json', 'w') as file:
@@ -104,7 +113,7 @@ file.close()
 # send email with new listings if there was any changes between older scrapes and newer scrapes
 if results_to_email:
     print("sending email...")
-    text = ("Hello, \n These are the new job listings found on the EA Vancouver Careers website: \n %s" %(results_to_email))
+    text = ("Hello, \n These are the new job listings found on the EA Vancouver Careers website: \n %s" %(unsorted_results))
     send_email(text)
 else:
     print("No new listings to report")
