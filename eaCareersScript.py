@@ -16,7 +16,7 @@ def send_email(text):
     gmail_password = args.password
     sent_from = gmail_user
     to = args.to
-    subject = 'New Job Listings from EA'
+    subject = 'New Listings from EA'
     body = text
     email_text = """\
     From: %s
